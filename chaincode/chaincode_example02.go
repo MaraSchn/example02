@@ -85,6 +85,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	A = args[0]
 	B = args[1]
 
+	// var Avalbytes
+
 	// Get the state from the ledger
 	// TODO: will be nice to have a GetAllState call to ledger
 	Avalbytes, err := stub.GetState(A)
@@ -101,7 +103,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		// return nil, errors.New("Entity not found")
 	}
 
-	Avalbytes, err := stub.GetState(A)
+	Avalbytes, err = stub.GetState(A)
 	if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 	Aval, _ = strconv.Atoi(string(Avalbytes))
@@ -123,7 +125,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		// return nil, errors.New("Entity not found")
 	}
 
-	Bvalbytes, err := stub.GetState(B)
+	Bvalbytes, err = stub.GetState(B)
 	if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 	Bval, _ = strconv.Atoi(stringBvalbytes))
