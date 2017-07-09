@@ -91,7 +91,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	if err != nil {
 		fmt.Printf("EMP %s nicht vorhanden (1).",A)
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
-		Avalbytes := stub.GetState(A)
+		Avalbytes, err := stub.GetState(A)
+		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 
 		// return nil, errors.New("Failed to get state")ed to
@@ -99,8 +100,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	if Avalbytes == nil {
 		fmt.Printf("EMP %s nicht vorhanden (2).", A)
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
-		Avalbytes := stub.GetState(A)
-
+		Avalbytes, err := stub.GetState(A)
+		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 		// return nil, errors.New("Entity not found")
 	}
@@ -113,8 +114,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	if err != nil {
 		fmt.Printf("CPO % s nicht vorhanden (1).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
-		Bvalbytes := stub.GetState(B)
-
+		Bvalbytes, err := stub.GetState(B)
+		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 		// return nil, errors.New("Failed to get state")
 	}
@@ -122,8 +123,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 		fmt.Printf("CPO % s nicht vorhanden (2).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
-		Bvalbytes := stub.GetState(B)
-
+		Bvalbytes, err := stub.GetState(B)
+		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 		// return nil, errors.New("Entity not found")
 	}
