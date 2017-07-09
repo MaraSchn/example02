@@ -92,7 +92,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
 		Avalbytes, err := stub.GetState(A)
-		mt.Printf("EMP " + A + " mit Kontostand = " + Avalbytes + " angelegt.")
+		mt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
 
 		// return nil, errors.New("Failed to get state")
 	}
@@ -100,22 +100,21 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
 		Avalbytes, err := stub.GetState(A)
-		mt.Printf("EMP " + A + " mit Kontostand = " + Avalbytes + " angelegt.")
+		mt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
 
 		// return nil, errors.New("Entity not found")
 	}
 
-
-
 	Aval, _ = strconv.Atoi(string(Avalbytes))
-	mt.Printf("Der Kontostand von " + A + " beträgt " + Aval + ".")
+	mt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
+
 
 	Bvalbytes, err := stub.GetState(B)
 	if err != nil {
 		fmt.Printf("CPO nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
 		Bvalbytes, err := stub.GetState(B)
-		fmt.Printf("CPO = " + B + ", Kontostand CPO = " + Bvalbytes + "")
+		fmt.Printf("CPO %s mit Kontostand %d € angelegt.", B, Bvalbytes)
 
 		// return nil, errors.New("Failed to get state")
 	}
@@ -124,13 +123,15 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf("CPO nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
 		Bvalbytes, err := stub.GetState(B)
-		fmt.Printf("CPO = " + B + ", Kontostand CPO = " + Bvalbytes + "")
+		fmt.Printf("CPO %s mit Kontostand %d € angelegt.", B, Bvalbytes)
 
 		// return nil, errors.New("Entity not found")
 	}
+
 	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
-	mt.Printf("Der Kontostand von " + B + " beträgt " + Bval + ".")
+	mt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
+
 
 	// Perform the execution
 	X, err = strconv.Atoi(args[2])
