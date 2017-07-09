@@ -89,18 +89,18 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	// TODO: will be nice to have a GetAllState call to ledger
 	Avalbytes, err := stub.GetState(A)
 	if err != nil {
-		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
+		fmt.Printf("EMP %s nicht vorhanden (1).",A)
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
-		Avalbytes, err := stub.GetState(A)
-		fmt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
+		Avalbytes := stub.GetState(A)
 
-		// return nil, errors.New("Failed to get state")
+
+		// return nil, errors.New("Failed to get state")ed to
 	}
 	if Avalbytes == nil {
-		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
+		fmt.Printf("EMP %s nicht vorhanden (2).", A)
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
-		Avalbytes, err := stub.GetState(A)
-		fmt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
+		Avalbytes := stub.GetState(A)
+
 
 		// return nil, errors.New("Entity not found")
 	}
@@ -109,21 +109,21 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
 
 
-	Bvalbytes, err := stub.GetState(B)
+	Bvalbytes := stub.GetState(B)
 	if err != nil {
-		fmt.Printf("CPO nicht vorhanden. Konto wird angelegt...")
+		fmt.Printf("CPO % s nicht vorhanden (1).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
-		Bvalbytes, err := stub.GetState(B)
-		fmt.Printf("CPO %s mit Kontostand %d € angelegt.", B, Bvalbytes)
+		Bvalbytes := stub.GetState(B)
+
 
 		// return nil, errors.New("Failed to get state")
 	}
 	if Bvalbytes == nil {
 
-		fmt.Printf("CPO nicht vorhanden. Konto wird angelegt...")
+		fmt.Printf("CPO % s nicht vorhanden (2).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
-		Bvalbytes, err := stub.GetState(B)
-		fmt.Printf("CPO %s mit Kontostand %d € angelegt.", B, Bvalbytes)
+		Bvalbytes := stub.GetState(B)
+
 
 		// return nil, errors.New("Entity not found")
 	}
