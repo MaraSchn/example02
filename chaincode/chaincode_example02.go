@@ -102,12 +102,15 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 		// return nil, errors.New("Entity not found")
 	}
-
 	Avalbytes, err = stub.GetState(A)
 	if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
 	Aval, _ = strconv.Atoi(string(Avalbytes))
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
+
+
+
+
 
 
 	Bvalbytes, err := stub.GetState(B)
@@ -128,9 +131,14 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	Bvalbytes, err = stub.GetState(B)
 	if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
 
-	Bval, _ = strconv.Atoi(stringBvalbytes))
+	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
+
+
+
+
+
 
 
 	// Perform the execution
