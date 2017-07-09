@@ -105,7 +105,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	}
 
 
-	Aval, _ = strconv.parsefloat(Avalbytes,32)
+	Aval, _ = strconv.ParseFloat(Avalbytes,32)
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
 
 
@@ -131,7 +131,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 
 
-	Bval, _ = strconv.parsefloat(Bvalbytes,32)
+	Bval, _ = strconv.ParseFloat(Bvalbytes,32)
 
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
 
@@ -142,18 +142,18 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 
 	// Perform the execution
-	X, err = strconv.parsefloat(args[2],32)
+	X, err = strconv.ParseFloat(args[2],32)
 	Aval = Aval - X
 	Bval = Bval + X
 	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
 
 	// Write the state back to the ledger
-	err = stub.PutState(A, []byte(strconv.parsefloat(Aval,32)))
+	err = stub.PutState(A, []byte(strconv.ParseFloat(Aval,32)))
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(B, []byte(strconv.parsefloat(Bval,32)))
+	err = stub.PutState(B, []byte(strconv.ParseFloat(Bval,32)))
 	if err != nil {
 		return nil, err
 	}
