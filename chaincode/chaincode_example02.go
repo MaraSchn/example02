@@ -92,7 +92,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
 		Avalbytes, err := stub.GetState(A)
-		mt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
+		fmt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
 
 		// return nil, errors.New("Failed to get state")
 	}
@@ -100,13 +100,13 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf("EMP nicht vorhanden. Konto wird angelegt...")
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
 		Avalbytes, err := stub.GetState(A)
-		mt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
+		fmt.Printf("EMP %s mit Kontostand %d € angelegt.", A, Avalbytes)
 
 		// return nil, errors.New("Entity not found")
 	}
 
 	Aval, _ = strconv.Atoi(string(Avalbytes))
-	mt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
+	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
 
 
 	Bvalbytes, err := stub.GetState(B)
@@ -130,7 +130,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
-	mt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
+	fmt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
 
 
 	// Perform the execution
