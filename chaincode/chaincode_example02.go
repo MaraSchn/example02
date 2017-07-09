@@ -110,7 +110,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
 
 
-	Bvalbytes := stub.GetState(B)
+	Bvalbytes, err := stub.GetState(B)
 	if err != nil {
 		fmt.Printf("CPO % s nicht vorhanden (1).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
