@@ -74,8 +74,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	fmt.Printf("Running invoke")
 
 	var A, B string    // Entities
-	var Aval, Bval float32 // Asset holdings
-	var X float32        // Transaction value
+	var Aval, Bval int // Asset holdings
+	var X int          // Transaction value
 	var err error
 
 	if len(args) != 3 {
@@ -95,7 +95,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		return nil, errors.New("Failed to get state")
 	}
 	if Avalbytes == nil {
-		fmt.Printf("%s nicht vorhanden.", A)
+		fmt.Printf("EMP %s nicht vorhanden (2).", A)
 		err = stub.PutState(A, []byte(strconv.Itoa(0)))
 
 		Avalbytes, err = stub.GetState(A)
@@ -105,8 +105,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	}
 
 
-	Aval, _ = strconv.ParseFloat(Avalbytes,32)
-	fmt.Printf("Der Kontostand von %s beträgt %d €. ", A, Aval )
+	Aval, _ = strconv.Atoi(string(Avalbytes))
+	fmt.Printf("Der Kontostand von %s beträgt %d Eurocent. ", A, Aval )
 
 
 
@@ -120,7 +120,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	}
 	if Bvalbytes == nil {
 
-		fmt.Printf("%s nicht vorhanden (2).", B)
+		fmt.Printf("CPO % s nicht vorhanden (2).", B)
 		err = stub.PutState(B, []byte(strconv.Itoa(0)))
 
 		Bvalbytes, err = stub.GetState(B)
@@ -131,9 +131,9 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 
 
-	Bval, _ = strconv.ParseFloat(Bvalbytes,32)
+	Bval, _ = strconv.Atoi(string(Bvalbytes))
 
-	fmt.Printf("Der Kontostand von %s beträgt %d €. ", B, Bval )
+	fmt.Printf("Der Kontostand von %s beträgt %d Eurocent. ", B, Bval )
 
 
 
@@ -142,18 +142,18 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 
 	// Perform the execution
-	X, err = strconv.ParseFloat(args[2],32)
+	X, err = strconv.Atoi(args[2])
 	Aval = Aval - X
 	Bval = Bval + X
 	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
 
 	// Write the state back to the ledger
-	err = stub.PutState(A, []byte(strconv.ParseFloat(Aval,32)))
+	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(B, []byte(strconv.ParseFloat(Bval,32)))
+	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
 	if err != nil {
 		return nil, err
 	}
