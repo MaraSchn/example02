@@ -23,6 +23,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"encoding/json"
+	"time"
+	"strings"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -30,152 +33,170 @@ import (
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
 }
-//TODO: keine Argumente in der Init-Funktion übergeben, alles einfach ausblenden???
-//TODO: Prüfung Umbenennung A = EMP, B = CPO, Aval = EMP_balance, Bval = CPO_balance, X= transaction_value
-func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
-	/*var EMP, CPO string    // Entities
-	var EMP_balance, CPO_balance int // Asset holdings
-	var err error
-
-	if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
-	}
-
-	// Initialize the chaincode
-	EMP = args[0]
-	EMP_balance, err = strconv.Atoi(args[1])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	CPO = args[2]
-	CPO_balance, err = strconv.Atoi(args[3])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-
-	// Write the state to the ledger
-	err = stub.PutState(EMP, []byte(strconv.Itoa(EMP_balance)))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stub.PutState(CPO, []byte(strconv.Itoa(CPO_balance)))
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil */
+// transactions with metadata, always stored in accounts
+type Transaction struct{
+	session_id string `json:"session_id"`
+	cpo string `json:"cpo"`
+	emp string `json:"emp"`
+	product string `json:"product"`
+	evse_id string `json:"evse_id"`
+	user_id string `json:"user_id"`
+	timestamp string `json:"timestamp"`
+	charging_duration float32 `json:"charging_duration"`
+	charged_energy float32 `json:"charged_energy"`
+	price_per_unit float32 `json:"price_per_unit"`
+	value_brutto int `json:"value_brutto"`
 }
 
-// Transaction makes payment of X units from EMP to CPO
-func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Printf("Running invoke")
-
-	var EMP, CPO string    // Entities
-	var EMP_balance, CPO_balance int // Account balance
-	var X int          // Transaction value
-	var err error
-
-	if len(args) != 3 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 3")
-	}
-
-	EMP = args[0]
-	CPO = args[1]
-
-	// var EMP_balance_bytes
-
-	// Get the state from the ledger
-	// TODO: will be nice to have a GetAllState call to ledger
-	EMP_balance_bytes, err := stub.GetState(EMP)
-	if err != nil {
-
-		return nil, errors.New("Failed to get state")
-	}
-	if EMP_balance_bytes == nil {
-		fmt.Printf("%s has no account in the ledger yet.", EMP)
-		err = stub.PutState(EMP, []byte(strconv.Itoa(0)))
-
-		EMP_balance_bytes, err = stub.GetState(EMP)
-		if err != nil {fmt.Printf("Failed to load new account.")}
-
-		// return nil, errors.New("Entity not found")
-	}
-
-
-	EMP_balance, _ = strconv.Atoi(string(EMP_balance_bytes))
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", EMP, EMP_balance/100 )
+// every transaction belongs to the receiving and the transmitting account
+// an acount contains the total account balance and the history of transactions affecting the account
+type Account struct{
+	// balance of the account including taxation etc.
+	balance_brutto int `json:"balance_brutto"`
+	//array of transactions an account had
+	transactions []Transaction `json:"transactions"`
+}
 
 
 
 
-
-
-	CPO_balance_bytes, err := stub.GetState(CPO)
-	if err != nil {
-
-		return nil, errors.New("Failed to get state")
-	}
-	if CPO_balance_bytes == nil {
-
-		fmt.Printf("%s has no account in the ledger yet.", CPO)
-		err = stub.PutState(CPO, []byte(strconv.Itoa(0)))
-
-		CPO_balance_bytes, err = stub.GetState(CPO)
-		if err != nil {fmt.Printf("Failed to load new account.")}
-
-		// return nil, errors.New("Entity not found")
-	}
-
-
-
-	CPO_balance, _ = strconv.Atoi(string(CPO_balance_bytes))
-
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", CPO, CPO_balance/100 )
-
-
-
-
-
-
-
-	// Perform the execution
-	X, err = strconv.Atoi(args[2])
-	EMP_balance = EMP_balance - X
-	CPO_balance = CPO_balance + X
-	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-	fmt.Printf("Account balance of %s after transaction is %d €. ", EMP, EMP_balance/100 )
-	fmt.Printf("Account balance of %s after transaction is %d €. ", CPO, CPO_balance/100 )
-
-	// Write the state back to the ledger
-	err = stub.PutState(EMP, []byte(strconv.Itoa(EMP_balance)))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stub.PutState(CPO, []byte(strconv.Itoa(CPO_balance)))
-	if err != nil {
-		return nil, err
-	}
+func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
 	return nil, nil
 }
 
+
+// ============================================================================================================================
+// Transaction: payment of X euro cents from EMP to CPO
+// ============================================================================================================================
+func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Printf("Running invoke")
+
+	if len(args) != 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting, in this order: EMP, CPO, transaction value")
+	}
+
+	// entity keys / identifiers
+	var emp_key, cpo_key string
+	// entities
+	var emp_account, cpo_account Account
+	// Transaction value
+	var tranaction_value int
+
+	var err error
+
+	// set involved EMP and CPO from function call
+	emp_key = args[0]
+	cpo_key = args[1]
+
+	// TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
+	t.delete(stub, [1]string{emp_key})
+	t.delete(stub, [1]string{cpo_key})
+	/*
+	new_account := Account{}
+	new_account.balance_brutto = 0
+	jsonAsBytes, _ := json.Marshal(new_account)
+	err = stub.PutState(emp_key, jsonAsBytes)
+	err = stub.PutState(cpo_key, jsonAsBytes)
+	*/
+
+	// load EMPs account
+	emp_account = t.getOrCreateNewAccount(stub, emp_key)
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", emp_key, emp_account.balance_brutto/100)
+
+	// load CPOs account
+	cpo_account = t.getOrCreateNewAccount(stub, cpo_key)
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
+
+	// Calculate the new total account balances for EMP and CPO
+	tranaction_value, err = strconv.Atoi(args[2])
+	emp_account.balance_brutto = emp_account.balance_brutto - tranaction_value
+	cpo_account.balance_brutto = cpo_account.balance_brutto + tranaction_value
+
+	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
+	fmt.Printf("Account balance of %s after transaction is %d €. ", emp_key, emp_account.balance_brutto/100)
+	fmt.Printf("Account balance of %s after transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
+
+	// write the updated EMP account back to the ledger
+	emp_account_bytes, _ := json.Marshal(emp_account)
+	err = stub.PutState(emp_key, emp_account_bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// write the updated CPO acccount back to the ledger
+	cpo_account_bytes, _ := json.Marshal(cpo_account)
+	err = stub.PutState(cpo_key, cpo_account_bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// function ran through without errors
+	return nil, nil
+}
+
+
+// ============================================================================================================================
+// read an account from the blockchain; if it doesn't exist yet, create a new one beforehand; return the account
+// ============================================================================================================================
+func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, args []string) (Account, error) {
+	var account_key, jsonResp string
+	var err error
+
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the var to query")
+	}
+
+	account_key = args[0]
+	account_value_bytes, err := stub.GetState(account_key)
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	// if loading account returned no bytes, no account exists
+	// --> create an account and load new accounts object bytes
+	if account_value_bytes == nil {
+		fmt.Printf("%s has no account in the ledger yet.", account_key)
+
+		new_account := Account{}
+		new_account.balance_brutto = 0
+		jsonAsBytes, _ := json.Marshal(new_account)
+		err = stub.PutState(account_key, jsonAsBytes)
+
+		account_value_bytes, err = stub.GetState(account_key)
+		if err != nil {
+			jsonResp = "{\"Error\":\"Failed to get state for freshly created account " + account_key + "\"}"
+			return nil, errors.New(jsonResp)
+		}
+	}
+
+	// create empty account template
+	account := Account{}
+	// fill account template with values read from blockchain
+	json.Unmarshal(account_value_bytes, &account)
+
+	// return account object with values
+	return account, nil
+}
+
+
+// ============================================================================================================================
 // Deletes an entity from state
+// ============================================================================================================================
 func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	fmt.Printf("Running delete")
 
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 3")
+		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
 
-	EMP := args[0]
+	account_key := args[0]
 
 	// Delete the key from the state in ledger
-	err := stub.DelState(EMP)
+	err := stub.DelState(account_key)
 	if err != nil {
 		return nil, errors.New("Failed to delete state")
 	}
