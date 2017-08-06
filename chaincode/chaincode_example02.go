@@ -55,7 +55,7 @@ type Account struct{
 	// balance of the account including taxation etc.
 	balance_brutto int `json:"balance_brutto"`
 	//array of transactions an account had
-	transactions []Transaction `json:"transactions"`
+	//transactions []Transaction `json:"transactions"`
 }
 
 
@@ -82,8 +82,10 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	var emp_key, cpo_key string
 	// entities
 	var emp_account, cpo_account Account
-	// Transaction value
+	// transaction value
 	var tranaction_value int
+	// updated entities, to be written to blockchain
+	var emp_account_bytes, cpo_account_bytes []byte
 
 	var err error
 
@@ -103,15 +105,24 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	*/
 
 	// load EMPs account
-	emp_account = t.getOrCreateNewAccount(stub, emp_key)
+	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
+	if err != nil {
+		return nil, err
+	}
 	fmt.Printf("Account balance of %s prior transaction is %d €. ", emp_key, emp_account.balance_brutto/100)
 
 	// load CPOs account
-	cpo_account = t.getOrCreateNewAccount(stub, cpo_key)
+	cpo_account, err = t.getOrCreateNewAccount(stub, cpo_key)
+	if err != nil {
+		return nil, err
+	}
 	fmt.Printf("Account balance of %s prior transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
 
 	// Calculate the new total account balances for EMP and CPO
 	tranaction_value, err = strconv.Atoi(args[2])
+	if err != nil {
+		return nil, err
+	}
 	emp_account.balance_brutto = emp_account.balance_brutto - tranaction_value
 	cpo_account.balance_brutto = cpo_account.balance_brutto + tranaction_value
 
@@ -120,14 +131,22 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	fmt.Printf("Account balance of %s after transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
 
 	// write the updated EMP account back to the ledger
-	emp_account_bytes, _ := json.Marshal(emp_account)
+	emp_account_bytes, err = json.Marshal(emp_account)
+	if err != nil {
+		return nil, err
+	}
+
 	err = stub.PutState(emp_key, emp_account_bytes)
 	if err != nil {
 		return nil, err
 	}
 
 	// write the updated CPO acccount back to the ledger
-	cpo_account_bytes, _ := json.Marshal(cpo_account)
+	cpo_account_bytes, err = json.Marshal(cpo_account)
+	if err != nil {
+		return nil, err
+	}
+
 	err = stub.PutState(cpo_key, cpo_account_bytes)
 	if err != nil {
 		return nil, err
@@ -143,14 +162,19 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 // ============================================================================================================================
 func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, args []string) (Account, error) {
 	var account_key, jsonResp string
+	// account object as stored in blockchain
+	var account_value_bytes []byte
 	var err error
+	// empty account template
+	var account Account
+	account = Account{}
 
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the var to query")
 	}
 
 	account_key = args[0]
-	account_value_bytes, err := stub.GetState(account_key)
+	account_value_bytes, err = stub.GetState(account_key)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
 		return nil, errors.New(jsonResp)
@@ -160,21 +184,20 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 	// --> create an account and load new accounts object bytes
 	if account_value_bytes == nil {
 		fmt.Printf("%s has no account in the ledger yet.", account_key)
-
-		new_account := Account{}
-		new_account.balance_brutto = 0
-		jsonAsBytes, _ := json.Marshal(new_account)
-		err = stub.PutState(account_key, jsonAsBytes)
-
-		account_value_bytes, err = stub.GetState(account_key)
+		account.balance_brutto = 0
+		account_value_bytes, err = json.Marshal(account)
 		if err != nil {
-			jsonResp = "{\"Error\":\"Failed to get state for freshly created account " + account_key + "\"}"
+			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + account_key + "\"}"
+			return nil, errors.New(jsonResp)
+		}
+
+		err = stub.PutState(account_key, account_value_bytes)
+		if err != nil {
+			jsonResp = "{\"Error\":\"Failed to put state for new account " + account_key + "\"}"
 			return nil, errors.New(jsonResp)
 		}
 	}
 
-	// create empty account template
-	account := Account{}
 	// fill account template with values read from blockchain
 	json.Unmarshal(account_value_bytes, &account)
 
