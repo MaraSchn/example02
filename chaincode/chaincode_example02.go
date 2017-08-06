@@ -161,8 +161,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 // ============================================================================================================================
 // read an account from the blockchain; if it doesn't exist yet, create a new one beforehand; return the account
 // ============================================================================================================================
-func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, args []string) (Account, error) {
-	var account_key, jsonResp string
+func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, account_key string) (Account, error) {
+	var jsonResp string
 	// account object as stored in blockchain
 	var account_value_bytes []byte
 	var err error
@@ -170,11 +170,6 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 	var account Account
 	account = Account{}
 
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting name of the var to query")
-	}
-
-	account_key = args[0]
 	account_value_bytes, err = stub.GetState(account_key)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
