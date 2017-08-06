@@ -173,7 +173,7 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 	account_value_bytes, err = stub.GetState(account_key)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
-		return nil, errors.New(jsonResp)
+		return account, errors.New(jsonResp)
 	}
 
 	// if loading account returned no bytes, no account exists
@@ -184,13 +184,7 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 		account_value_bytes, err = json.Marshal(account)
 		if err != nil {
 			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + account_key + "\"}"
-			return nil, errors.New(jsonResp)
-		}
-
-		err = stub.PutState(account_key, account_value_bytes)
-		if err != nil {
-			jsonResp = "{\"Error\":\"Failed to put state for new account " + account_key + "\"}"
-			return nil, errors.New(jsonResp)
+			return account, errors.New(jsonResp)
 		}
 	}
 
