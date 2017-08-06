@@ -93,15 +93,17 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	cpo_key = args[1]
 
 	// TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
-	t.delete(stub, emp_key)
+
+	/*t.delete(stub, emp_key)
 	t.delete(stub, cpo_key)
-	/*
+	*/
+
 	new_account := Account{}
 	new_account.balance_brutto = 0
 	jsonAsBytes, _ := json.Marshal(new_account)
 	err = stub.PutState(emp_key, jsonAsBytes)
 	err = stub.PutState(cpo_key, jsonAsBytes)
-	*/
+
 
 	// load EMPs account
 	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
