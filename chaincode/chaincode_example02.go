@@ -54,7 +54,7 @@ type Account struct{
 	// balance of the account including taxation etc.
 	balance_brutto int `json:"balance_brutto"`
 	//array of transactions an account had
-	//transactions []Transaction `json:"transactions"`
+	transactions []Transaction `json:"transactions"`
 }
 
 
