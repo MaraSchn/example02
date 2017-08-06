@@ -30,12 +30,13 @@ import (
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
 }
-
+//TODO: keine Argumente in der Init-Funktion übergeben, alles einfach ausblenden???
+//TODO: Prüfung Umbenennung A = EMP, B = CPO, Aval = EMP_balance, Bval = CPO_balance, X= transaction_value
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
+	/*var EMP, CPO string    // Entities
+	var EMP_balance, CPO_balance int // Asset holdings
 	var err error
 
 	if len(args) != 4 {
@@ -43,38 +44,38 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	// Initialize the chaincode
-	A = args[0]
-	Aval, err = strconv.Atoi(args[1])
+	EMP = args[0]
+	EMP_balance, err = strconv.Atoi(args[1])
 	if err != nil {
 		return nil, errors.New("Expecting integer value for asset holding")
 	}
-	B = args[2]
-	Bval, err = strconv.Atoi(args[3])
+	CPO = args[2]
+	CPO_balance, err = strconv.Atoi(args[3])
 	if err != nil {
 		return nil, errors.New("Expecting integer value for asset holding")
 	}
-	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
+	fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
 
 	// Write the state to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
+	err = stub.PutState(EMP, []byte(strconv.Itoa(EMP_balance)))
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
+	err = stub.PutState(CPO, []byte(strconv.Itoa(CPO_balance)))
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return nil, nil */
 }
 
-// Transaction makes payment of X units from A to B
+// Transaction makes payment of X units from EMP to CPO
 func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	fmt.Printf("Running invoke")
 
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
+	var EMP, CPO string    // Entities
+	var EMP_balance, CPO_balance int // Account balance
 	var X int          // Transaction value
 	var err error
 
@@ -82,58 +83,58 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		return nil, errors.New("Incorrect number of arguments. Expecting 3")
 	}
 
-	A = args[0]
-	B = args[1]
+	EMP = args[0]
+	CPO = args[1]
 
-	// var Avalbytes
+	// var EMP_balance_bytes
 
 	// Get the state from the ledger
 	// TODO: will be nice to have a GetAllState call to ledger
-	Avalbytes, err := stub.GetState(A)
+	EMP_balance_bytes, err := stub.GetState(EMP)
 	if err != nil {
 
 		return nil, errors.New("Failed to get state")
 	}
-	if Avalbytes == nil {
-		fmt.Printf("EMP %s nicht vorhanden (2).", A)
-		err = stub.PutState(A, []byte(strconv.Itoa(0)))
+	if EMP_balance_bytes == nil {
+		fmt.Printf("%s has no account in the ledger yet.", EMP)
+		err = stub.PutState(EMP, []byte(strconv.Itoa(0)))
 
-		Avalbytes, err = stub.GetState(A)
-		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
+		EMP_balance_bytes, err = stub.GetState(EMP)
+		if err != nil {fmt.Printf("Failed to load new account.")}
 
 		// return nil, errors.New("Entity not found")
 	}
 
 
-	Aval, _ = strconv.Atoi(string(Avalbytes))
-	fmt.Printf("Der Kontostand von %s beträgt %d Eurocent. ", A, Aval )
+	EMP_balance, _ = strconv.Atoi(string(EMP_balance_bytes))
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", EMP, EMP_balance/100 )
 
 
 
 
 
 
-	Bvalbytes, err := stub.GetState(B)
+	CPO_balance_bytes, err := stub.GetState(CPO)
 	if err != nil {
 
 		return nil, errors.New("Failed to get state")
 	}
-	if Bvalbytes == nil {
+	if CPO_balance_bytes == nil {
 
-		fmt.Printf("CPO % s nicht vorhanden (2).", B)
-		err = stub.PutState(B, []byte(strconv.Itoa(0)))
+		fmt.Printf("%s has no account in the ledger yet.", CPO)
+		err = stub.PutState(CPO, []byte(strconv.Itoa(0)))
 
-		Bvalbytes, err = stub.GetState(B)
-		if err != nil {fmt.Printf("Konnte neues Konto nicht laden.")}
+		CPO_balance_bytes, err = stub.GetState(CPO)
+		if err != nil {fmt.Printf("Failed to load new account.")}
 
 		// return nil, errors.New("Entity not found")
 	}
 
 
 
-	Bval, _ = strconv.Atoi(string(Bvalbytes))
+	CPO_balance, _ = strconv.Atoi(string(CPO_balance_bytes))
 
-	fmt.Printf("Der Kontostand von %s beträgt %d Eurocent. ", B, Bval )
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", CPO, CPO_balance/100 )
 
 
 
@@ -143,17 +144,19 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 	// Perform the execution
 	X, err = strconv.Atoi(args[2])
-	Aval = Aval - X
-	Bval = Bval + X
-	fmt.Printf("Aval = %d, Bval = %d\n", Aval, Bval)
+	EMP_balance = EMP_balance - X
+	CPO_balance = CPO_balance + X
+	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
+	fmt.Printf("Account balance of %s after transaction is %d €. ", EMP, EMP_balance/100 )
+	fmt.Printf("Account balance of %s after transaction is %d €. ", CPO, CPO_balance/100 )
 
 	// Write the state back to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
+	err = stub.PutState(EMP, []byte(strconv.Itoa(EMP_balance)))
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
+	err = stub.PutState(CPO, []byte(strconv.Itoa(CPO_balance)))
 	if err != nil {
 		return nil, err
 	}
@@ -169,10 +172,10 @@ func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string
 		return nil, errors.New("Incorrect number of arguments. Expecting 3")
 	}
 
-	A := args[0]
+	EMP := args[0]
 
 	// Delete the key from the state in ledger
-	err := stub.DelState(A)
+	err := stub.DelState(EMP)
 	if err != nil {
 		return nil, errors.New("Failed to delete state")
 	}
@@ -181,13 +184,13 @@ func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string
 }
 
 // Invoke callback representing the invocation of a chaincode
-// This chaincode will manage two accounts A and B and will transfer X units from A to B upon invoke
+// This chaincode will manage two accounts EMP and CPO and will transfer X units from EMP to CPO upon invoke
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Invoke called, determining function")
 
 	// Handle different functions
 	if function == "invoke" {
-		// Transaction makes payment of X units from A to B
+		// Transaction makes payment of X units from EMP to CPO
 		fmt.Printf("Function is invoke")
 		return t.invoke(stub, args)
 	} else if function == "init" {
@@ -207,7 +210,7 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 
 	// Handle different functions
 	if function == "invoke" {
-		// Transaction makes payment of X units from A to B
+		// Transaction makes payment of X units from EMP to CPO
 		fmt.Printf("Function is invoke")
 		return t.invoke(stub, args)
 	} else if function == "init" {
@@ -230,30 +233,30 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		fmt.Printf("Function is query")
 		return nil, errors.New("Invalid query function name. Expecting \"query\"")
 	}
-	var A string // Entities
+	var account string // Entities
 	var err error
 
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
-	A = args[0]
+	account = args[0]
 
 	// Get the state from the ledger
-	Avalbytes, err := stub.GetState(A)
+	account_balance_bytes, err := stub.GetState(account)
 	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + A + "\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for " + account + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	if Avalbytes == nil {
-		jsonResp := "{\"Error\":\"Nil amount for " + A + "\"}"
+	if account_balance_bytes == nil {
+		jsonResp := "{\"Error\":\"Nil amount for " + account + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
+	jsonResp := "{\"Name\":\"" + account + "\",\"Amount\":\"" + string(account_balance_bytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
-	return Avalbytes, nil
+	return account_balance_bytes, nil
 }
 
 func main() {

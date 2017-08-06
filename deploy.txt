@@ -1,0 +1,44 @@
+{
+  "jsonrpc": "2.0",
+  "method": "deploy",
+  "params": {
+    "type": 1,
+    "chaincodeID": {
+      "path": "http://gopkg.in/MaraSchn/example02.v3/chaincode"
+    },
+    "ctorMsg": {
+      "function": "init",
+      "args": [
+        "a",
+                "100",
+                "b",
+                "200"
+      ]
+    },
+    "secureContext": "user_type1_0"
+  },
+  "id": 0
+}
+
+
+
+
+// query function - works only with one argument
+{
+    "jsonrpc": "2.0",
+    "method": "query",
+    "params": {
+        "type": 1,
+        "chaincodeID": {
+            "name": "ae85c12a3f261b9d5ba50a3f2dd44e2ea9219ae3c3a6426164b1a252f49cd238aa3cda4cd44f7e55b726e4cc29e98c9101a334d7fb4dad21f7420fd2591db50b"
+        },
+        "ctorMsg": {
+            "function": "query",
+            "args": [
+                "CPO101"
+            ]
+        },
+        "secureContext": "user_type1_0"
+    },
+    "id": 0
+}
