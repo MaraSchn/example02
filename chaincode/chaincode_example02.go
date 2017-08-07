@@ -60,7 +60,7 @@ type Account struct{
 
 
 
-func (t *SimpleChaincode) init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
 	return nil, nil
@@ -229,7 +229,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.invoke(stub, args)
 	} else if function == "init" {
 		fmt.Printf("Function is init")
-		return t.init(stub, function, args)
+		return t.Init(stub, function, args)
 	} else if function == "delete" {
 		// Deletes an entity from its state
 		fmt.Printf("Function is delete")
@@ -249,7 +249,7 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 		return t.invoke(stub, args)
 	} else if function == "init" {
 		fmt.Printf("Function is init")
-		return t.init(stub, function, args)
+		return t.Init(stub, function, args)
 	} else if function == "delete" {
 		// Deletes an entity from its state
 		fmt.Printf("Function is delete")
