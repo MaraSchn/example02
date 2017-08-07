@@ -60,7 +60,7 @@ type Account struct{
 
 
 
-func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
 	return nil, nil
