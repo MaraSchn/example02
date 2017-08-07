@@ -229,7 +229,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.invoke(stub, args)
 	} else if function == "init" {
 		fmt.Printf("Function is init")
-		return t.Init(stub, function, args)
+		return t.init(stub, function, args)
 	} else if function == "delete" {
 		// Deletes an entity from its state
 		fmt.Printf("Function is delete")
