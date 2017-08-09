@@ -71,6 +71,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	// entity keys / identifiers
 	var a_key, b_key string
+	var a_val, b_val int
 
 	var err error
 	// entities
@@ -80,13 +81,15 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	// set involved EMP and CPO from function call
 	a_key = args[0]
+	a_val, err = strconv.Atoi(args[1])
 	a_account := Account{}
-	a_account.balance_brutto = strconv.Atoi(args[1])
+	a_account.balance_brutto = a_val
 	a_account_bytes, _ := json.Marshal(a_account)
 
 	b_key = args[2]
+	b_val, err = strconv.Atoi(args[3])
 	b_account := Account{}
-	b_account.balance_brutto = strconv.Atoi(args[3])
+	b_account.balance_brutto = b_val
 	b_account_bytes, _ := json.Marshal(b_account)
 
 // Write the state to the ledger
