@@ -70,11 +70,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	*/
 
 	// entity keys / identifiers
-	var a_key, B_key string
+	var a_key, b_key string
+
+	var err error
 	// entities
-	var a_account, B_account Account
+	//var a_account, b_account Account
 	// updated entities, to be written to blockchain
-	var a_account_bytes, B_account_bytes []byte
+	//var a_account_bytes, b_account_bytes []byte
 
 	// set involved EMP and CPO from function call
 	a_key = args[0]
