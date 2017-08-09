@@ -337,16 +337,56 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 }
 
 // Query callback representing the query of a chaincode
-func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args string) (Account, error) {
 	fmt.Printf("Query called, determining function")
 
 	if function != "query" {
 		fmt.Printf("Function is query")
 		return nil, errors.New("Invalid query function name. Expecting \"query\"")
 	}
-	var account string // Entities
-	var err error
+	//var account string // Entities
+	//var err error
 
+
+
+	var account_key string // Entities
+
+	var jsonResp string
+	// account object as stored in blockchain
+	var account_value_bytes []byte
+	var err error
+	// empty account template
+	var account Account
+	account = Account{}
+
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
+	}
+
+	account_key = args[0]
+	account_value_bytes, err = stub.GetState(account_key)
+
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
+		return account, errors.New(jsonResp)
+	}
+
+	if account_value_bytes == nil {
+		jsonResp := "{\"Error\":\"Nil amount for " + account + "\"}"
+		return nil, errors.New(jsonResp)
+	}
+
+	// fill account template with values read from blockchain
+	json.Unmarshal(account_value_bytes, &account)
+
+	jsonResp := "{\"Name\":\"" + account_key + "\",\"Amount\":\"" + string(account.balance_brutto) + "\"}"
+	fmt.Printf("Query Response:%s\n", jsonResp)
+
+		// return account object with values
+		return account, nil
+
+	}
+	/*
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
@@ -369,6 +409,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	fmt.Printf("Query Response:%s\n", jsonResp)
 	return account_balance_bytes, nil
 }
+
+*/
+
+
 
 func main() {
 	err := shim.Start(new(SimpleChaincode))
