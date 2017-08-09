@@ -62,12 +62,43 @@ type Account struct{
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode")
-	
+
 	var A, B string    // Entities
 	var Aval, Bval int // Asset holdings
 	var err error
 
-	if len(args) != 4 {
+	// entity keys / identifiers
+	var emp_key, cpo_key string
+	// entities
+	var emp_account, cpo_account Account
+	// updated entities, to be written to blockchain
+	var emp_account_bytes, cpo_account_bytes []byte
+
+	// set involved EMP and CPO from function call
+	emp_key = args[0]
+	emp_account := Account{}
+	emp_account.balance_brutto = args[1]
+	emp_account_bytes, _ := json.Marshal(emp_account)
+	err = stub.PutState(emp_key, emp_account_bytes)
+
+	cpo_key = args[2]
+	cpo_account := Account{}
+	cpo_account.balance_brutto = args[3]
+	cpo_account_bytes, _ := json.Marshal(cpo_account)
+
+// Write the state to the ledger
+	err = stub.PutState(emp_key, emp_account_bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	err = stub.PutState(cpo_key, cpo_account_bytes)
+	if err != nil {
+		return nil, err
+	}
+
+
+	/*if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
 
@@ -93,7 +124,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	return nil, nil
 }
