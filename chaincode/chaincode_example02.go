@@ -81,12 +81,12 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	// set involved EMP and CPO from function call
 	a_key = args[0]
 	a_account := Account{}
-	a_account.balance_brutto = args[1]
+	a_account.balance_brutto = strconv.Atoi(args[1])
 	a_account_bytes, _ := json.Marshal(a_account)
 
 	b_key = args[2]
 	b_account := Account{}
-	b_account.balance_brutto = args[3]
+	b_account.balance_brutto = strconv.Atoi(args[3])
 	b_account_bytes, _ := json.Marshal(b_account)
 
 // Write the state to the ledger
