@@ -83,6 +83,23 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	// updated entities, to be written to blockchain
 	//var a_account_bytes, b_account_bytes []byte
 
+
+	// empty account template
+	var account Account
+	account = Account{}
+
+	// fill account template with values read from blockchain
+	json.Unmarshal(t.Query(args[0]), &account)
+
+	fmt.Printf("account %d has balance %s", args[0], account.balance_brutto)
+
+	json.Unmarshal(t.Query(args[2]), &account)
+
+	fmt.Printf("account %d has balance %s", args[2], account.balance_brutto)
+
+
+
+
 	// set involved EMP and CPO from function call
 	a_key = args[0]
 	a_val, err = strconv.Atoi(args[1])
@@ -337,16 +354,12 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 }
 
 // Query callback representing the query of a chaincode
-func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, account_key string) (Account, error) {
+func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, account_key string) ([]byte, error) {
 	fmt.Printf("Query called, determining function")
 
-	var jsonResp string
 	// account object as stored in blockchain
 	var account_value_bytes []byte
 	var err error
-	// empty account template
-	var account Account
-	account = Account{}
 
 	if function != "query" {
 		fmt.Printf("Function is query")
@@ -356,30 +369,14 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	//var err error
 
 
-	if len(args) != 1 {
+	if len(account_key) != 1 {
 		return account, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
-	account_value_bytes, err = stub.GetState(account_key)
-
-	if err != nil {
-		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
-		return account, errors.New(jsonResp)
-	}
-
-	if account_value_bytes == nil {
-		jsonResp = "{\"Error\":\"Nil amount for " + account_key + "\"}"
-		return account, errors.New(jsonResp)
-	}
-
-	// fill account template with values read from blockchain
-	json.Unmarshal(account_value_bytes, &account)
-
-	jsonResp = "{\"Name\":\"" + account_key + "\",\"Amount\":\"" + string(account.balance_brutto) + "\"}"
-	fmt.Printf("Query Response:%s\n", jsonResp)
+		account_value_bytes, err = stub.GetState(account_key)
 
 		// return account object with values
-		return account, nil
+		return account_value_bytes, nil
 
 }
 
