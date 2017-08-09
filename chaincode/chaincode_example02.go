@@ -381,8 +381,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		// return account object with values
 		return account, nil
 
-	}
 }
+
 	/*
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
