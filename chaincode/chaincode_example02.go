@@ -340,13 +340,6 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, account_key string) (Account, error) {
 	fmt.Printf("Query called, determining function")
 
-	if function != "query" {
-		fmt.Printf("Function is query")
-		return account, errors.New("Invalid query function name. Expecting \"query\"")
-	}
-	//var account string // Entities
-	//var err error
-
 	var jsonResp string
 	// account object as stored in blockchain
 	var account_value_bytes []byte
@@ -355,11 +348,18 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	var account Account
 	account = Account{}
 
+	if function != "query" {
+		fmt.Printf("Function is query")
+		return account, errors.New("Invalid query function name. Expecting \"query\"")
+	}
+	//var account string // Entities
+	//var err error
+
+
 	if len(args) != 1 {
 		return account, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
-	account_key = args[0]
 	account_value_bytes, err = stub.GetState(account_key)
 
 	if err != nil {
@@ -382,6 +382,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return account, nil
 
 	}
+}
 	/*
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
@@ -408,11 +409,12 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 */
 
-
-
+// ============================================================================================================================
+// Main
+// ============================================================================================================================
 func main() {
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
-	}
+}
 }
