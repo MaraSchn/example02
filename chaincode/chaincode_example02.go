@@ -354,7 +354,7 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 }
 
 // Query callback representing the query of a chaincode
-func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, account_key string) ([]byte, error) {
+func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Query called, determining function")
 
 	// account object as stored in blockchain
@@ -369,11 +369,18 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	//var err error
 
 
-	if len(account_key) != 1 {
+	if len(args) != 1 {
 		return account, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
+	account_key := args[0]
+
 		account_value_bytes, err = stub.GetState(account_key)
+
+		if err != nil {
+			jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+			return nil, errors.New(jsonResp)
+		}
 
 		// return account object with values
 		return account_value_bytes, nil
