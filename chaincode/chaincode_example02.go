@@ -72,7 +72,6 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	var err error
-	var a_account_bytes_read []byte
 
 	// set involved EMP and CPO from function call
 	a_key = args[0]
@@ -103,6 +102,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account1 = Account{}
 	// fill account template with values read from blockchain
 
+	var a_account_bytes_read []byte
     a_account_bytes_read, err = stub.GetState(a_key)
 	if err != nil {
 		return nil, err
