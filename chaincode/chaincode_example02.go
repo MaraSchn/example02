@@ -91,6 +91,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("account %s is persisted with balance %d", a_key, a_account.balance_brutto)
 
 	err = stub.PutState(b_key, b_account_bytes)
 	if err != nil {
@@ -111,7 +112,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	json.Unmarshal(a_account_bytes, &account1)
-	fmt.Printf("account %d has balance %s", a_key, account1.balance_brutto)
+	fmt.Printf("account %s is read with balance %d", a_key, account1.balance_brutto)
 
 	/*
 	var account2 Account
