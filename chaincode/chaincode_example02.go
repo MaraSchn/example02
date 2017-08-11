@@ -361,14 +361,14 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 	if function != "query" {
 		fmt.Printf("Function is query")
-		return account, errors.New("Invalid query function name. Expecting \"query\"")
+		return nil, errors.New("Invalid query function name. Expecting \"query\"")
 	}
 	//var account string // Entities
 	//var err error
 
 
 	if len(args) != 1 {
-		return account, errors.New("Incorrect number of arguments. Expecting name of the person to query")
+		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
 	account_key := args[0]
