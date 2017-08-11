@@ -373,43 +373,16 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 	account_key := args[0]
 
-		account_value_bytes, err = stub.GetState(account_key)
+	account_value_bytes, err = stub.GetState(account_key)
 
-		if err != nil {
-			jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
-			return nil, errors.New(jsonResp)
-		}
-
-		// return account object with values
-		return account_value_bytes, nil
-
-}
-
-	/*
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
-	}
-
-	account = args[0]
-
-	// Get the state from the ledger
-	account_balance_bytes, err := stub.GetState(account)
 	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + account + "\"}"
+		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
 		return nil, errors.New(jsonResp)
 	}
-
-	if account_balance_bytes == nil {
-		jsonResp := "{\"Error\":\"Nil amount for " + account + "\"}"
-		return nil, errors.New(jsonResp)
-	}
-
-	jsonResp := "{\"Name\":\"" + account + "\",\"Amount\":\"" + string(account_balance_bytes) + "\"}"
-	fmt.Printf("Query Response:%s\n", jsonResp)
-	return account_balance_bytes, nil
+	
+	// return account object with values
+	return account_value_bytes, nil
 }
-
-*/
 
 // ============================================================================================================================
 // Main
