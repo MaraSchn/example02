@@ -84,6 +84,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	//var a_account_bytes, b_account_bytes []byte
 
 
+	/*
 	// empty account template
 	var account1 Account
 	account1 = Account{}
@@ -95,7 +96,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account2 = Account{}
 	json.Unmarshal(t.Query(stub, "query", []string{args[2]}), &account2)
 	fmt.Printf("account %d has balance %s", args[2], account2.balance_brutto)
-
+	*/
 
 
 
