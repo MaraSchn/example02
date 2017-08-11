@@ -97,6 +97,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		return nil, err
 	}
 
+	fmt.Printf("this sux so much")
+
+	/*
 	// empty account template
 	var account1 Account
 	account1 = Account{}
