@@ -105,7 +105,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account1 = Account{}
 	// fill account template with values read from blockchain
 
-    a_account_bytes_read, _ := stub.GetState(a_key)
+    a_account_bytes, err = stub.GetState(a_key)
 	if err != nil {
 		return nil, err
 	}
