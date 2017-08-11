@@ -63,12 +63,6 @@ type Account struct{
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode")
 
-	/*
-	var A, B string    // Entities
-	var Aval, Bval int // Asset holdings
-	var err error
-	*/
-
 	// entity keys / identifiers
 	var a_key, b_key string
 	var a_val, b_val int
@@ -78,10 +72,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	var err error
-	// entities
-	//var a_account, b_account Account
-	// updated entities, to be written to blockchain
-	var a_account_bytes_read, b_account_bytes_read []byte
+	var a_account_bytes_read []byte
 
 	// set involved EMP and CPO from function call
 	a_key = args[0]
