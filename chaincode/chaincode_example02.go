@@ -81,7 +81,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	// entities
 	//var a_account, b_account Account
 	// updated entities, to be written to blockchain
-	//var a_account_bytes, b_account_bytes []byte
+	var a_account_bytes_read, b_account_bytes_read []byte
 
 	// set involved EMP and CPO from function call
 	a_key = args[0]
@@ -111,7 +111,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var account1 Account
 	account1 = Account{}
 	// fill account template with values read from blockchain
-	json.Unmarshal(stub.GetState(a_key), &account1)
+
+    a_account_bytes_read, err = stub.GetState(a_key)
+	if err != nil {
+		return nil, err
+	}
+
+	json.Unmarshal(a_account_bytes, &account1)
 	fmt.Printf("account %d has balance %s", a_key, account1.balance_brutto)
 
 	/*
