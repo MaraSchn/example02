@@ -93,7 +93,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	fmt.Printf("account %d has balance %s", args[0], account.balance_brutto)
 
-	json.Unmarshal(t.Query(args[2]), &account)
+	json.Unmarshal(t.Query(stub, “query“, args[2]), &account)
 
 	fmt.Printf("account %d has balance %s", args[2], account.balance_brutto)
 
@@ -190,14 +190,13 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 	/*t.delete(stub, emp_key)
 	t.delete(stub, cpo_key)
-	*/
 
 	new_account := Account{}
 	new_account.balance_brutto = 0
 	jsonAsBytes, _ := json.Marshal(new_account)
 	err = stub.PutState(emp_key, jsonAsBytes)
 	err = stub.PutState(cpo_key, jsonAsBytes)
-
+	*/
 
 	// load EMPs account
 	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
