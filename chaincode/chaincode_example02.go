@@ -89,7 +89,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account = Account{}
 
 	// fill account template with values read from blockchain
-	json.Unmarshal(t.Query(args[0]), &account)
+	json.Unmarshal(t.Query(stub, “query“, args[0]), &account)
 
 	fmt.Printf("account %d has balance %s", args[0], account.balance_brutto)
 
