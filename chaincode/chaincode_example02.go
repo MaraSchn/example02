@@ -358,6 +358,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	// account object as stored in blockchain
 	var account_value_bytes []byte
 	var err error
+	var jsonResp string
+
 
 	if function != "query" {
 		fmt.Printf("Function is query")
