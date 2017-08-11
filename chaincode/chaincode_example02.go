@@ -111,7 +111,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var account1 Account
 	account1 = Account{}
 	// fill account template with values read from blockchain
-	json.Unmarshal(stub.GetState(a_key_, &account1)
+	json.Unmarshal(stub.GetState(a_key), &account1)
 	fmt.Printf("account %d has balance %s", a_key, account1.balance_brutto)
 
 	/*
@@ -119,12 +119,6 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account2 = Account{}
 	json.Unmarshal(t.Query(stub, "query", []string{args[2]}), &account2)
 	fmt.Printf("account %d has balance %s", args[2], account2.balance_brutto)
-	*/
-
-
-	/*if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
-	}
 	*/
 
 	var c, d string    // Entities
