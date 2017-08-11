@@ -84,7 +84,6 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	//var a_account_bytes, b_account_bytes []byte
 
 
-	/*
 	// empty account template
 	var account1 Account
 	account1 = Account{}
@@ -92,6 +91,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	json.Unmarshal(t.Query(stub, "query", []string{args[0]}), &account1)
 	fmt.Printf("account %d has balance %s", args[0], account1.balance_brutto)
 
+	/*
 	var account2 Account
 	account2 = Account{}
 	json.Unmarshal(t.Query(stub, "query", []string{args[2]}), &account2)
@@ -113,7 +113,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	b_account.balance_brutto = b_val
 	b_account_bytes, _ := json.Marshal(b_account)
 
-// Write the state to the ledger
+	// Write the state to the ledger
 	err = stub.PutState(a_key, a_account_bytes)
 	if err != nil {
 		return nil, err
@@ -128,18 +128,20 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	/*if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
 	}
+	*/
 
-*/
-var c, d string    // Entities
-var cval, dval int // Asset holdings
+	var c, d string    // Entities
+	var cval, dval int // Asset holdings
 
 	// Initialize the chaincode
 	c = args[0]
+	c += "old"
 	cval, err = strconv.Atoi(args[1])
 	if err != nil {
 		return nil, errors.New("Expecting integer value for asset holding")
 	}
 	d = args[2]
+	d += "old"
 	dval, err = strconv.Atoi(args[3])
 	if err != nil {
 		return nil, errors.New("Expecting integer value for asset holding")
