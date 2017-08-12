@@ -35,33 +35,33 @@ type SimpleChaincode struct {
 
 // transactions with metadata, always stored in accounts
 type Transaction struct{
-	session_id string `json:"session_id"`
-	cpo string `json:"cpo"`
-	emp string `json:"emp"`
-	product string `json:"product"`
-	evse_id string `json:"evse_id"`
-	user_id string `json:"user_id"`
-	timestamp string `json:"timestamp"`
-	charging_duration float32 `json:"charging_duration"`
-	charged_energy float32 `json:"charged_energy"`
-	price_per_unit float32 `json:"price_per_unit"`
-	value_brutto int `json:"value_brutto"`
+	Session_id string
+	Cpo string
+	Emp string
+	Product string
+	Evse_id string
+	User_id string
+	Timestamp string
+	Charging_duration float32
+	Charged_energy float32
+	Price_per_unit float32
+	Value_brutto int
 }
 
 // every transaction belongs to the receiving and the transmitting account
 // an acount contains the total account balance and the history of transactions affecting the account
 type Account struct{
 	// balance of the account including taxation etc.
-	balance_brutto int `json:"balance_brutto"`
+	Balance_brutto int
 	//array of transactions an account had
-	transactions []Transaction `json:"transactions"`
+	Transactions []Transaction
 }
 
 
 
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Printf("Maraike said: Init called, initializing chaincode")
+	fmt.Println("Maraike said: Init called, initializing chaincode")
 
 	// entity keys / identifiers
 	var a_key, b_key string
@@ -77,13 +77,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	a_key = args[0]
 	a_val, err = strconv.Atoi(args[1])
 	a_account := Account{}
-	a_account.balance_brutto = a_val
+	a_account.Balance_brutto = a_val
 	a_account_bytes, _ := json.Marshal(a_account)
 
 	b_key = args[2]
 	b_val, err = strconv.Atoi(args[3])
 	b_account := Account{}
-	b_account.balance_brutto = b_val
+	b_account.Balance_brutto = b_val
 	b_account_bytes, _ := json.Marshal(b_account)
 
 	// Write the state to the ledger
@@ -91,14 +91,14 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("account %s is persisted with balance %d", a_key, a_account.balance_brutto)
+	fmt.Println("account %s is persisted with balance %d", a_key, a_account.Balance_brutto)
 
 	err = stub.PutState(b_key, b_account_bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("this sux so much 2")
+	fmt.Println("this sux so much 3")
 
 	
 	// empty account template
@@ -112,13 +112,13 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	json.Unmarshal(a_account_bytes, &account1)
-	fmt.Printf("account %s is read with balance %d", a_key, account1.balance_brutto)
+	fmt.Println("account %s is read with balance %d", a_key, account1.Balance_brutto)
 
 	/*
 	var account2 Account
 	account2 = Account{}
 	json.Unmarshal(t.Query(stub, "query", []string{args[2]}), &account2)
-	fmt.Printf("account %d has balance %s", args[2], account2.balance_brutto)
+	fmt.Println("account %d has balance %s", args[2], account2.Balance_brutto)
 	*/
 
 	var c, d string    // Entities
@@ -185,7 +185,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	t.delete(stub, cpo_key)
 
 	new_account := Account{}
-	new_account.balance_brutto = 0
+	new_account.Balance_brutto = 0
 	jsonAsBytes, _ := json.Marshal(new_account)
 	err = stub.PutState(emp_key, jsonAsBytes)
 	err = stub.PutState(cpo_key, jsonAsBytes)
@@ -196,26 +196,26 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", emp_key, emp_account.balance_brutto/100)
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", emp_key, emp_account.Balance_brutto/100)
 
 	// load CPOs account
 	cpo_account, err = t.getOrCreateNewAccount(stub, cpo_key)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
+	fmt.Printf("Account balance of %s prior transaction is %d €. ", cpo_key, cpo_account.Balance_brutto/100)
 
 	// Calculate the new total account balances for EMP and CPO
 	tranaction_value, err = strconv.Atoi(args[2])
 	if err != nil {
 		return nil, err
 	}
-	emp_account.balance_brutto = emp_account.balance_brutto - tranaction_value
-	cpo_account.balance_brutto = cpo_account.balance_brutto + tranaction_value
+	emp_account.Balance_brutto = emp_account.Balance_brutto - tranaction_value
+	cpo_account.Balance_brutto = cpo_account.Balance_brutto + tranaction_value
 
 	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-	fmt.Printf("Account balance of %s after transaction is %d €. ", emp_key, emp_account.balance_brutto/100)
-	fmt.Printf("Account balance of %s after transaction is %d €. ", cpo_key, cpo_account.balance_brutto/100)
+	fmt.Printf("Account balance of %s after transaction is %d €. ", emp_key, emp_account.Balance_brutto/100)
+	fmt.Printf("Account balance of %s after transaction is %d €. ", cpo_key, cpo_account.Balance_brutto/100)
 
 	// write the updated EMP account back to the ledger
 	emp_account_bytes, err = json.Marshal(emp_account)
@@ -266,7 +266,7 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 	// --> create an account and load new accounts object bytes
 	if account_value_bytes == nil {
 		fmt.Printf("%s has no account in the ledger yet.", account_key)
-		account.balance_brutto = 0
+		account.Balance_brutto = 0
 		account_value_bytes, err = json.Marshal(account)
 		if err != nil {
 			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + account_key + "\"}"
