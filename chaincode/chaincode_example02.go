@@ -85,6 +85,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
+
 	fmt.Println("account %s is persisted with balance %d", a_key, a_account.Balance_brutto)
 
 	b_key = args[2]
@@ -98,17 +99,12 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		return nil, err
 	}
+
 	fmt.Println("account %s is persisted with balance %d", b_key, b_account.Balance_brutto)
 
-	err = stub.PutState(b_key, b_account_bytes)
-	if err != nil {
-		return nil, err
-	}
-
 	
-	// empty account template
+	// read accounts just persisted above from blockchain
 	account1 := Account{}
-	// fill account template with values read from blockchain
     a_account_bytes2, _ := stub.GetState(a_key)
 	json.Unmarshal(a_account_bytes2, &account1)
 	fmt.Println("account %s is read with balance %d", a_key, account1.Balance_brutto)
@@ -116,36 +112,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account2 := Account{}
     b_account_bytes2, _ := stub.GetState(b_key)
 	json.Unmarshal(b_account_bytes2, &account2)
-	fmt.Println("account %s has balance %d", b_key, account2.Balance_brutto)
-
-	var c, d string    // Entities
-	var cval, dval int // Asset holdings
-
-	// Initialize the chaincode
-	c = args[0]
-	c += "old"
-	cval, err = strconv.Atoi(args[1])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	d = args[2]
-	d += "old"
-	dval, err = strconv.Atoi(args[3])
-	if err != nil {
-		return nil, errors.New("Expecting integer value for asset holding")
-	}
-	fmt.Printf("cval = %d, dval = %d\n", cval, dval)
-
-	// Write the state to the ledger
-	err = stub.PutState(c, []byte(strconv.Itoa(cval)))
-	if err != nil {
-		return nil, err
-	}
-
-	err = stub.PutState(d, []byte(strconv.Itoa(dval)))
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println("account %s is read with balance %d", b_key, account2.Balance_brutto)
 
 	return nil, nil
 }
