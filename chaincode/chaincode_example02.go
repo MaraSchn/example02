@@ -122,7 +122,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 // Transaction: payment of X euro cents from EMP to CPO
 // ============================================================================================================================
 func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Printf("Running invoke")
+	fmt.Println("Running invoke")
 
 	if len(args) != 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting, in this order: EMP, CPO, transaction value")
@@ -143,17 +143,17 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	emp_key = args[0]
 	cpo_key = args[1]
 
-	// TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
-
 	/*t.delete(stub, emp_key)
 	t.delete(stub, cpo_key)
+	*/
 
 	new_account := Account{}
 	new_account.Balance_brutto = 0
 	jsonAsBytes, _ := json.Marshal(new_account)
 	err = stub.PutState(emp_key, jsonAsBytes)
 	err = stub.PutState(cpo_key, jsonAsBytes)
-	*/
+	
+	fmt.Println("invoke: put accounts %s, %s into blockchain with value 0 to overwrite old occurences", emp_key, cpo_key) // TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
 
 	// load EMPs account
 	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
@@ -202,6 +202,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("completed invoke successfully")
 
 	// function ran through without errors
 	return nil, nil
