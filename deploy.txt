@@ -4,7 +4,7 @@
   "params": {
     "type": 1,
     "chaincodeID": {
-      "path": "http://gopkg.in/MaraSchn/example02.v3/chaincode"
+      "path": "http://gopkg.in/MaraSchn/example02.v4/chaincode"
     },
     "ctorMsg": {
       "function": "init",

@@ -106,12 +106,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	account1 = Account{}
 	// fill account template with values read from blockchain
 
-    a_account_bytes, err = stub.GetState(a_key)
-	if err != nil {
-		return nil, err
-	}
+    a_account_bytes2, _ := stub.GetState(a_key)
 
-	json.Unmarshal(a_account_bytes, &account1)
+	json.Unmarshal(a_account_bytes2, &account1)
 	fmt.Println("account %s is read with balance %d", a_key, account1.Balance_brutto)
 
 	/*
