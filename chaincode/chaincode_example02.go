@@ -102,7 +102,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	fmt.Println("account %s is persisted with balance %d", b_key, b_account.Balance_brutto)
 
-	
+
 	// read accounts just persisted above from blockchain
 	account1 := Account{}
     a_account_bytes2, _ := stub.GetState(a_key)
@@ -147,27 +147,29 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	t.delete(stub, cpo_key)
 	*/
 
-	new_account := Account{}
+	/*new_account := Account{}
 	new_account.Balance_brutto = 0
 	jsonAsBytes, _ := json.Marshal(new_account)
 	err = stub.PutState(emp_key, jsonAsBytes)
 	err = stub.PutState(cpo_key, jsonAsBytes)
-	
+
 	fmt.Println("invoke: put accounts %s, %s into blockchain with value 0 to overwrite old occurences", emp_key, cpo_key) // TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
+	*/
+
 
 	// load EMPs account
 	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", emp_key, emp_account.Balance_brutto/100)
+	fmt.Printf("Account balance of %s prior transaction is %d Eurocents. ", emp_key, emp_account.Balance_brutto)
 
 	// load CPOs account
 	cpo_account, err = t.getOrCreateNewAccount(stub, cpo_key)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d €. ", cpo_key, cpo_account.Balance_brutto/100)
+	fmt.Printf("Account balance of %s prior transaction is %d Eurocents. ", cpo_key, cpo_account.Balance_brutto)
 
 	// Calculate the new total account balances for EMP and CPO
 	tranaction_value, err = strconv.Atoi(args[2])
@@ -178,8 +180,8 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	cpo_account.Balance_brutto = cpo_account.Balance_brutto + tranaction_value
 
 	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-	fmt.Printf("Account balance of %s after transaction is %d €. ", emp_key, emp_account.Balance_brutto/100)
-	fmt.Printf("Account balance of %s after transaction is %d €. ", cpo_key, cpo_account.Balance_brutto/100)
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents. ", emp_key, emp_account.Balance_brutto)
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents. ", cpo_key, cpo_account.Balance_brutto)
 
 	// write the updated EMP account back to the ledger
 	emp_account_bytes, err = json.Marshal(emp_account)
@@ -341,7 +343,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
 		return nil, errors.New(jsonResp)
 	}
-	
+
 	// return account object with values
 	return account_value_bytes, nil
 }
