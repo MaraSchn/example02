@@ -80,12 +80,6 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	a_account.Balance_brutto = a_val
 	a_account_bytes, _ := json.Marshal(a_account)
 
-	b_key = args[2]
-	b_val, err = strconv.Atoi(args[3])
-	b_account := Account{}
-	b_account.Balance_brutto = b_val
-	b_account_bytes, _ := json.Marshal(b_account)
-
 	// Write the state to the ledger
 	err = stub.PutState(a_key, a_account_bytes)
 	if err != nil {
@@ -93,30 +87,36 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 	fmt.Println("account %s is persisted with balance %d", a_key, a_account.Balance_brutto)
 
+	b_key = args[2]
+	b_val, err = strconv.Atoi(args[3])
+	b_account := Account{}
+	b_account.Balance_brutto = b_val
+	b_account_bytes, _ := json.Marshal(b_account)
+
+	// Write the state to the ledger
+	err = stub.PutState(b_key, b_account_bytes)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("account %s is persisted with balance %d", b_key, b_account.Balance_brutto)
+
 	err = stub.PutState(b_key, b_account_bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("this sux so much 3")
-
 	
 	// empty account template
-	var account1 Account
-	account1 = Account{}
+	account1 := Account{}
 	// fill account template with values read from blockchain
-
     a_account_bytes2, _ := stub.GetState(a_key)
-
 	json.Unmarshal(a_account_bytes2, &account1)
 	fmt.Println("account %s is read with balance %d", a_key, account1.Balance_brutto)
 
-	/*
-	var account2 Account
-	account2 = Account{}
-	json.Unmarshal(t.Query(stub, "query", []string{args[2]}), &account2)
-	fmt.Println("account %d has balance %s", args[2], account2.Balance_brutto)
-	*/
+	account2 := Account{}
+    b_account_bytes2, _ := stub.GetState(b_key)
+	json.Unmarshal(b_account_bytes2, &account2)
+	fmt.Println("account %s has balance %d", b_key, account2.Balance_brutto)
 
 	var c, d string    // Entities
 	var cval, dval int // Asset holdings
