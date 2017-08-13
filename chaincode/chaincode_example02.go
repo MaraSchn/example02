@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -61,55 +60,67 @@ type Account struct {
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Printf("Maraike said: Init called, initializing chaincode\n")
 
-	// entity keys / identifiers
-	var aKey, bKey string
-	var aVal, bVal int
-
-	if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4")
-	}
-
 	var err error
 
-	// set involved EMP and CPO from function call
-	aKey = args[0]
-	aVal, err = strconv.Atoi(args[1])
+	if len(args) != 1 {
+		return nil, errors.New("Init: Expecting one argument of type Transaction")
+	}
+	// unmarshall transaction from JSON format to Transaction object
+	transaction := Transaction{}
+	err = json.Unmarshal([]byte(args[0]), &transaction)
+	if err != nil {
+		return nil, errors.New("Invoke: Cannot unmarshal " + args[0])
+	}
+
+	// aKey and bKey are the account names stored in the blockchain
+	aKey := transaction.Emp
+	bKey := transaction.Cpo
+
+	// the monetary value of the transaction
+	transactionValue := transaction.ValueBrutto
+
+	// A and B objects of type Account loaded from blockchain
+	aAccount := Account{}
+	bAccount := Account{}
+	// updated accounts later stored back to the blockchain
+	var aAccountBytes, bAccountBytes []byte
+
+	// calculate the new total account balances for A and B
+	aAccount.BalanceBrutto = 0 - transactionValue
+	bAccount.BalanceBrutto = 0 + transactionValue
+
+	// add current transaction to As and Bs transaction list
+	aAccount.Transactions = append(aAccount.Transactions, transaction)
+	bAccount.Transactions = append(bAccount.Transactions, transaction)
+
+	// write the updated A account back to the ledger
+	aAccountBytes, err = json.Marshal(aAccount)
 	if err != nil {
 		return nil, err
 	}
-	aAccount := Account{}
-	aAccount.BalanceBrutto = aVal
-	aAccountBytes, _ := json.Marshal(aAccount)
 
-	// Write the state to the ledger
 	err = stub.PutState(aKey, aAccountBytes)
 	if err != nil {
 		return nil, err
 	}
-
 	fmt.Printf("account %s is persisted with balance %d\n", aKey, aAccount.BalanceBrutto)
 
-	bKey = args[2]
-	bVal, err = strconv.Atoi(args[3])
+	// write the updated B acccount back to the ledger
+	bAccountBytes, err = json.Marshal(bAccount)
 	if err != nil {
 		return nil, err
 	}
-	bAccount := Account{}
-	bAccount.BalanceBrutto = bVal
-	bAccountBytes, _ := json.Marshal(bAccount)
 
-	// Write the state to the ledger
 	err = stub.PutState(bKey, bAccountBytes)
 	if err != nil {
 		return nil, err
 	}
-
 	fmt.Printf("account %s is persisted with balance %d\n", bKey, bAccount.BalanceBrutto)
 
 	// read accounts just persisted above from blockchain
 	account1 := Account{}
-	aAccountBytes2, _ := stub.GetState(aKey)
-	json.Unmarshal(aAccountBytes2, &account1)
+	aAccountBytes1, _ := stub.GetState(aKey)
+	json.Unmarshal(aAccountBytes1, &account1)
 	fmt.Printf("account %s is read with balance %d\n", aKey, account1.BalanceBrutto)
 
 	account2 := Account{}
@@ -176,7 +187,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 
 	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
 	fmt.Printf("Account balance of %s after transaction is %d Eurocents; the account now contains %d transactions\n", empKey, empAccount.BalanceBrutto, len(empAccount.Transactions))
-	fmt.Printf("Account balance of %s after transaction is %d Eurocents; the account now contains %d transactions\n", cpoKey, cpoAccount.BalanceBrutto, len(empAccount.Transactions))
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents; the account now contains %d transactions\n", cpoKey, cpoAccount.BalanceBrutto, len(cpoAccount.Transactions))
 
 	// write the updated EMP account back to the ledger
 	empAccountBytes, err = json.Marshal(empAccount)
