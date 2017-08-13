@@ -39,7 +39,7 @@ type Transaction struct {
 	Product          string
 	EvseID           string
 	UserID           string
-	Timestamp        string
+	Timestamp        int64
 	ChargingDuration float32
 	ChargedEnergy    float32
 	PricePerUnit     float32
