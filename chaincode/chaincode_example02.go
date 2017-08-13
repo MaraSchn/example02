@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -73,8 +74,8 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	// aKey and bKey are the account names stored in the blockchain
-	aKey := transaction.Emp
-	bKey := transaction.Cpo
+	aKey := t.getEntityKey(transaction.Emp, transaction.Timestamp)
+	bKey := t.getEntityKey(transaction.Cpo, transaction.Timestamp)
 
 	// the monetary value of the transaction
 	transactionValue := transaction.ValueBrutto
@@ -153,9 +154,9 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		return nil, errors.New("Invoke: Cannot unmarshal " + args[0])
 	}
 
-	// empKey and cpoKey are the account names stored in the blockchain
-	empKey := transaction.Emp
-	cpoKey := transaction.Cpo
+	// empKey and cpoKey are the account names stored in the blockchain (in the format: ENTITYNAME_YEARMONTH)
+	empKey := t.getEntityKey(transaction.Emp, transaction.Timestamp)
+	cpoKey := t.getEntityKey(transaction.Cpo, transaction.Timestamp)
 
 	// the monetary value of the transaction
 	transactionValue := transaction.ValueBrutto
@@ -356,6 +357,13 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 	// return account object with values
 	return accountValueBytes, nil
+}
+
+// getEntityKey - receives the wanted entities name + a transactions timestamp and returns the appropiate account name
+func (t *SimpleChaincode) getEntityKey(entityName string, timestamp int64) string {
+	tm := time.Unix(timestamp, 0)
+	const dateLayout = "200601"
+	return entityName + "_" + tm.Format(dateLayout)
 }
 
 // ============================================================================================================================
