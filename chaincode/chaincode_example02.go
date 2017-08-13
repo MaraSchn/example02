@@ -74,6 +74,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	// set involved EMP and CPO from function call
 	aKey = args[0]
 	aVal, err = strconv.Atoi(args[1])
+	if err != nil {
+		return nil, err
+	}
 	aAccount := Account{}
 	aAccount.BalanceBrutto = aVal
 	aAccountBytes, _ := json.Marshal(aAccount)
@@ -88,6 +91,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	bKey = args[2]
 	bVal, err = strconv.Atoi(args[3])
+	if err != nil {
+		return nil, err
+	}
 	bAccount := Account{}
 	bAccount.BalanceBrutto = bVal
 	bAccountBytes, _ := json.Marshal(bAccount)
@@ -118,52 +124,59 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 // Transaction: payment of X euro cents from EMP to CPO
 // ============================================================================================================================
 func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
 	fmt.Printf("Running invoke\n")
-
-	if len(args) != 3 {
-		return nil, errors.New("Incorrect number of arguments. Expecting, in this order: EMP, CPO, transaction value")
-	}
-
-	// entity keys / identifiers
-	var empKey, cpoKey string
-	// entities
-	var empAccount, cpoAccount Account
-	// transaction value
-	var tranactionValue int
-	// updated entities, to be written to blockchain
-	var empAccountBytes, cpoAccountBytes []byte
 
 	var err error
 
-	// set involved EMP and CPO from function call
-	empKey = args[0]
-	cpoKey = args[1]
+	if len(args) != 1 {
+		return nil, errors.New("Invoke: Expecting one argument of type Transaction")
+	}
 
-	// load EMPs account
+	// unmarshall transaction from JSON format to Transaction object
+	transaction := Transaction{}
+	err = json.Unmarshal([]byte(args[0]), &transaction)
+	if err != nil {
+		return nil, errors.New("Invoke: Cannot unmarshal " + args[0])
+	}
+
+	// empKey and cpoKey are the account names stored in the blockchain
+	empKey := transaction.Emp
+	cpoKey := transaction.Cpo
+
+	// the monetary value of the transaction
+	transactionValue := transaction.ValueBrutto
+
+	// EMP and CPO objects of type Account loaded from blockchain
+	var empAccount, cpoAccount Account
+	// updated accounts later stored back to the blockchain
+	var empAccountBytes, cpoAccountBytes []byte
+
+	// load EMPs account (or create a new one, in case this is the first transaction involving this EMP)
 	empAccount, err = t.getOrCreateNewAccount(stub, empKey)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", empKey, empAccount.BalanceBrutto)
 
-	// load CPOs account
+	// load CPOs account (or create a new one, in case this is the first transaction involving this CPO)
 	cpoAccount, err = t.getOrCreateNewAccount(stub, cpoKey)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", cpoKey, cpoAccount.BalanceBrutto)
 
-	// Calculate the new total account balances for EMP and CPO
-	tranactionValue, err = strconv.Atoi(args[2])
-	if err != nil {
-		return nil, err
-	}
-	empAccount.BalanceBrutto = empAccount.BalanceBrutto - tranactionValue
-	cpoAccount.BalanceBrutto = cpoAccount.BalanceBrutto + tranactionValue
+	// calculate the new total account balances for EMP and CPO
+	empAccount.BalanceBrutto = empAccount.BalanceBrutto - transactionValue
+	cpoAccount.BalanceBrutto = cpoAccount.BalanceBrutto + transactionValue
+
+	// add current transaction to the EMPs and the CPOs transaction list
+	empAccount.Transactions = append(empAccount.Transactions, transaction)
+	cpoAccount.Transactions = append(cpoAccount.Transactions, transaction)
 
 	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-	fmt.Printf("Account balance of %s after transaction is %d Eurocents\n", empKey, empAccount.BalanceBrutto)
-	fmt.Printf("Account balance of %s after transaction is %d Eurocents\n", cpoKey, cpoAccount.BalanceBrutto)
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents; the account now contains %d transactions\n", empKey, empAccount.BalanceBrutto, len(empAccount.Transactions))
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents; the account now contains %d transactions\n", cpoKey, cpoAccount.BalanceBrutto, len(empAccount.Transactions))
 
 	// write the updated EMP account back to the ledger
 	empAccountBytes, err = json.Marshal(empAccount)
