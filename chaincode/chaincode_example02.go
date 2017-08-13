@@ -141,6 +141,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	var err error
 
 	if len(args) != 1 {
+		fmt.Printf("Invoke: Expecting one argument of type Transaction\n")
 		return nil, errors.New("Invoke: Expecting one argument of type Transaction")
 	}
 
@@ -148,6 +149,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	transaction := Transaction{}
 	err = json.Unmarshal([]byte(args[0]), &transaction)
 	if err != nil {
+		fmt.Printf("Invoke: Cannot unmarshal %s\n", args[0])
 		return nil, errors.New("Invoke: Cannot unmarshal " + args[0])
 	}
 
@@ -166,6 +168,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	// load EMPs account (or create a new one, in case this is the first transaction involving this EMP)
 	empAccount, err = t.getOrCreateNewAccount(stub, empKey)
 	if err != nil {
+		fmt.Printf("Invoke: error after getOrCreateNewAccount(%s)\n", empKey)
 		return nil, err
 	}
 	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", empKey, empAccount.BalanceBrutto)
@@ -173,6 +176,7 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 	// load CPOs account (or create a new one, in case this is the first transaction involving this CPO)
 	cpoAccount, err = t.getOrCreateNewAccount(stub, cpoKey)
 	if err != nil {
+		fmt.Printf("Invoke: error after getOrCreateNewAccount(%s)\n", cpoKey)
 		return nil, err
 	}
 	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", cpoKey, cpoAccount.BalanceBrutto)
@@ -232,6 +236,7 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 	accountValueBytes, err = stub.GetState(accountKey)
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + accountKey + "\"}"
+		fmt.Printf(jsonResp)
 		return account, errors.New(jsonResp)
 	}
 
@@ -243,6 +248,7 @@ func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface
 		accountValueBytes, err = json.Marshal(account)
 		if err != nil {
 			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + accountKey + "\"}"
+			fmt.Printf(jsonResp)
 			return account, errors.New(jsonResp)
 		}
 	}
