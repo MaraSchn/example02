@@ -1,24 +1,23 @@
 {
-  "jsonrpc": "2.0",
-  "method": "deploy",
-  "params": {
-    "type": 1,
-    "chaincodeID": {
-      "path": "http://gopkg.in/MaraSchn/example02.v4/chaincode"
-    },
-    "ctorMsg": {
-      "function": "init",
-      "args": [
-        "a",
-                "100",
-                "b",
-                "200"
-      ]
-    },
-    "secureContext": "user_type1_0"
+"jsonrpc": "2.0",
+"method": "deploy",
+"params": {
+  "type": 1,
+  "chaincodeID": {
+    "path": "http://gopkg.in/MaraSchn/example02.v4/chaincode"
   },
-  "id": 0
+  "ctorMsg": {
+    "function": "init",
+    "args": [ "a",
+              "100",
+              "b",
+              "200" ]
+  },
+  "secureContext": "user_type1_0"
+},
+"id": 0
 }
+
 
 
 

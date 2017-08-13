@@ -20,11 +20,10 @@ under the License.
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
-	"encoding/json"
-
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
@@ -33,39 +32,38 @@ import (
 type SimpleChaincode struct {
 }
 
-// transactions with metadata, always stored in accounts
-type Transaction struct{
-	Session_id string
-	Cpo string
-	Emp string
-	Product string
-	Evse_id string
-	User_id string
-	Timestamp string
-	Charging_duration float32
-	Charged_energy float32
-	Price_per_unit float32
-	Value_brutto int
+// Transaction with metadata, always stored in accounts
+type Transaction struct {
+	SessionID        string
+	Cpo              string
+	Emp              string
+	Product          string
+	EvseID           string
+	UserID           string
+	Timestamp        string
+	ChargingDuration float32
+	ChargedEnergy    float32
+	PricePerUnit     float32
+	ValueBrutto      int
 }
 
-// every transaction belongs to the receiving and the transmitting account
+// Account - every transaction belongs to the receiving and the transmitting account
 // an acount contains the total account balance and the history of transactions affecting the account
-type Account struct{
+type Account struct {
 	// balance of the account including taxation etc.
-	Balance_brutto int
+	BalanceBrutto int
 	//array of transactions an account had
 	Transactions []Transaction
 }
 
-
-
-
+// Init - called once when deploying chaincode
+// ============================================================================================================================
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Println("Maraike said: Init called, initializing chaincode")
+	fmt.Printf("Maraike said: Init called, initializing chaincode\n")
 
 	// entity keys / identifiers
-	var a_key, b_key string
-	var a_val, b_val int
+	var aKey, bKey string
+	var aVal, bVal int
 
 	if len(args) != 4 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 4")
@@ -74,196 +72,178 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	var err error
 
 	// set involved EMP and CPO from function call
-	a_key = args[0]
-	a_val, err = strconv.Atoi(args[1])
-	a_account := Account{}
-	a_account.Balance_brutto = a_val
-	a_account_bytes, _ := json.Marshal(a_account)
+	aKey = args[0]
+	aVal, err = strconv.Atoi(args[1])
+	aAccount := Account{}
+	aAccount.BalanceBrutto = aVal
+	aAccountBytes, _ := json.Marshal(aAccount)
 
 	// Write the state to the ledger
-	err = stub.PutState(a_key, a_account_bytes)
+	err = stub.PutState(aKey, aAccountBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("account %s is persisted with balance %d", a_key, a_account.Balance_brutto)
+	fmt.Printf("account %s is persisted with balance %d\n", aKey, aAccount.BalanceBrutto)
 
-	b_key = args[2]
-	b_val, err = strconv.Atoi(args[3])
-	b_account := Account{}
-	b_account.Balance_brutto = b_val
-	b_account_bytes, _ := json.Marshal(b_account)
+	bKey = args[2]
+	bVal, err = strconv.Atoi(args[3])
+	bAccount := Account{}
+	bAccount.BalanceBrutto = bVal
+	bAccountBytes, _ := json.Marshal(bAccount)
 
 	// Write the state to the ledger
-	err = stub.PutState(b_key, b_account_bytes)
+	err = stub.PutState(bKey, bAccountBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("account %s is persisted with balance %d", b_key, b_account.Balance_brutto)
-
+	fmt.Printf("account %s is persisted with balance %d\n", bKey, bAccount.BalanceBrutto)
 
 	// read accounts just persisted above from blockchain
 	account1 := Account{}
-    a_account_bytes2, _ := stub.GetState(a_key)
-	json.Unmarshal(a_account_bytes2, &account1)
-	fmt.Println("account %s is read with balance %d", a_key, account1.Balance_brutto)
+	aAccountBytes2, _ := stub.GetState(aKey)
+	json.Unmarshal(aAccountBytes2, &account1)
+	fmt.Printf("account %s is read with balance %d\n", aKey, account1.BalanceBrutto)
 
 	account2 := Account{}
-    b_account_bytes2, _ := stub.GetState(b_key)
-	json.Unmarshal(b_account_bytes2, &account2)
-	fmt.Println("account %s is read with balance %d", b_key, account2.Balance_brutto)
+	bAccountBytes2, _ := stub.GetState(bKey)
+	json.Unmarshal(bAccountBytes2, &account2)
+	fmt.Printf("account %s is read with balance %d\n", bKey, account2.BalanceBrutto)
 
 	return nil, nil
 }
-
 
 // ============================================================================================================================
 // Transaction: payment of X euro cents from EMP to CPO
 // ============================================================================================================================
 func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Println("Running invoke")
+	fmt.Printf("Running invoke\n")
 
 	if len(args) != 3 {
 		return nil, errors.New("Incorrect number of arguments. Expecting, in this order: EMP, CPO, transaction value")
 	}
 
 	// entity keys / identifiers
-	var emp_key, cpo_key string
+	var empKey, cpoKey string
 	// entities
-	var emp_account, cpo_account Account
+	var empAccount, cpoAccount Account
 	// transaction value
-	var tranaction_value int
+	var tranactionValue int
 	// updated entities, to be written to blockchain
-	var emp_account_bytes, cpo_account_bytes []byte
+	var empAccountBytes, cpoAccountBytes []byte
 
 	var err error
 
 	// set involved EMP and CPO from function call
-	emp_key = args[0]
-	cpo_key = args[1]
-
-	/*t.delete(stub, emp_key)
-	t.delete(stub, cpo_key)
-	*/
-
-	/*new_account := Account{}
-	new_account.Balance_brutto = 0
-	jsonAsBytes, _ := json.Marshal(new_account)
-	err = stub.PutState(emp_key, jsonAsBytes)
-	err = stub.PutState(cpo_key, jsonAsBytes)
-
-	fmt.Println("invoke: put accounts %s, %s into blockchain with value 0 to overwrite old occurences", emp_key, cpo_key) // TODO: REMOVE OVERWRITING ACCOUNTS WHEN DEPLOYING THIS BRANCH FOR THE SECOND TIME
-	*/
-
+	empKey = args[0]
+	cpoKey = args[1]
 
 	// load EMPs account
-	emp_account, err = t.getOrCreateNewAccount(stub, emp_key)
+	empAccount, err = t.getOrCreateNewAccount(stub, empKey)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d Eurocents. ", emp_key, emp_account.Balance_brutto)
+	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", empKey, empAccount.BalanceBrutto)
 
 	// load CPOs account
-	cpo_account, err = t.getOrCreateNewAccount(stub, cpo_key)
+	cpoAccount, err = t.getOrCreateNewAccount(stub, cpoKey)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Account balance of %s prior transaction is %d Eurocents. ", cpo_key, cpo_account.Balance_brutto)
+	fmt.Printf("Account balance of %s prior transaction is %d Eurocents\n", cpoKey, cpoAccount.BalanceBrutto)
 
 	// Calculate the new total account balances for EMP and CPO
-	tranaction_value, err = strconv.Atoi(args[2])
+	tranactionValue, err = strconv.Atoi(args[2])
 	if err != nil {
 		return nil, err
 	}
-	emp_account.Balance_brutto = emp_account.Balance_brutto - tranaction_value
-	cpo_account.Balance_brutto = cpo_account.Balance_brutto + tranaction_value
+	empAccount.BalanceBrutto = empAccount.BalanceBrutto - tranactionValue
+	cpoAccount.BalanceBrutto = cpoAccount.BalanceBrutto + tranactionValue
 
 	//fmt.Printf("EMP_balance = %d, CPO_balance = %d\n", EMP_balance, CPO_balance)
-	fmt.Printf("Account balance of %s after transaction is %d Eurocents. ", emp_key, emp_account.Balance_brutto)
-	fmt.Printf("Account balance of %s after transaction is %d Eurocents. ", cpo_key, cpo_account.Balance_brutto)
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents\n", empKey, empAccount.BalanceBrutto)
+	fmt.Printf("Account balance of %s after transaction is %d Eurocents\n", cpoKey, cpoAccount.BalanceBrutto)
 
 	// write the updated EMP account back to the ledger
-	emp_account_bytes, err = json.Marshal(emp_account)
+	empAccountBytes, err = json.Marshal(empAccount)
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(emp_key, emp_account_bytes)
+	err = stub.PutState(empKey, empAccountBytes)
 	if err != nil {
 		return nil, err
 	}
 
 	// write the updated CPO acccount back to the ledger
-	cpo_account_bytes, err = json.Marshal(cpo_account)
+	cpoAccountBytes, err = json.Marshal(cpoAccount)
 	if err != nil {
 		return nil, err
 	}
 
-	err = stub.PutState(cpo_key, cpo_account_bytes)
+	err = stub.PutState(cpoKey, cpoAccountBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("completed invoke successfully")
+	fmt.Printf("completed invoke successfully\n")
 
 	// function ran through without errors
 	return nil, nil
 }
 
-
 // ============================================================================================================================
 // read an account from the blockchain; if it doesn't exist yet, create a new one beforehand; return the account
 // ============================================================================================================================
-func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, account_key string) (Account, error) {
+func (t *SimpleChaincode) getOrCreateNewAccount(stub shim.ChaincodeStubInterface, accountKey string) (Account, error) {
 	var jsonResp string
 	// account object as stored in blockchain
-	var account_value_bytes []byte
+	var accountValueBytes []byte
 	var err error
 	// empty account template
 	var account Account
 	account = Account{}
 
-	account_value_bytes, err = stub.GetState(account_key)
+	accountValueBytes, err = stub.GetState(accountKey)
 	if err != nil {
-		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
+		jsonResp = "{\"Error\":\"Failed to get state for " + accountKey + "\"}"
 		return account, errors.New(jsonResp)
 	}
 
 	// if loading account returned no bytes, no account exists
 	// --> create an account and load new accounts object bytes
-	if account_value_bytes == nil {
-		fmt.Printf("%s has no account in the ledger yet.", account_key)
-		account.Balance_brutto = 0
-		account_value_bytes, err = json.Marshal(account)
+	if accountValueBytes == nil {
+		fmt.Printf("%s has no account in the ledger yet\n", accountKey)
+		account.BalanceBrutto = 0
+		accountValueBytes, err = json.Marshal(account)
 		if err != nil {
-			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + account_key + "\"}"
+			jsonResp = "{\"Error\":\"Failed to marshal json for new account " + accountKey + "\"}"
 			return account, errors.New(jsonResp)
 		}
 	}
 
 	// fill account template with values read from blockchain
-	json.Unmarshal(account_value_bytes, &account)
+	json.Unmarshal(accountValueBytes, &account)
 
 	// return account object with values
 	return account, nil
 }
 
-
 // ============================================================================================================================
 // Deletes an entity from state
 // ============================================================================================================================
 func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Printf("Running delete")
+	fmt.Printf("Running delete\n")
 
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1")
 	}
 
-	account_key := args[0]
+	accountKey := args[0]
 
 	// Delete the key from the state in ledger
-	err := stub.DelState(account_key)
+	err := stub.DelState(accountKey)
 	if err != nil {
 		return nil, errors.New("Failed to delete state")
 	}
@@ -274,39 +254,41 @@ func (t *SimpleChaincode) delete(stub shim.ChaincodeStubInterface, args []string
 // Invoke callback representing the invocation of a chaincode
 // This chaincode will manage two accounts EMP and CPO and will transfer X units from EMP to CPO upon invoke
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Printf("Invoke called, determining function")
+	fmt.Printf("Invoke called, determining function\n")
 
 	// Handle different functions
 	if function == "invoke" {
 		// Transaction makes payment of X units from EMP to CPO
-		fmt.Printf("Function is invoke")
+		fmt.Printf("Function is invoke\n")
 		return t.invoke(stub, args)
 	} else if function == "init" {
-		fmt.Printf("Function is init")
+		fmt.Printf("Function is init\n")
 		return t.Init(stub, function, args)
-	} else if function == "delete" {
+	} else if function == "delete\n" {
 		// Deletes an entity from its state
-		fmt.Printf("Function is delete")
+		fmt.Printf("Function is delete\n")
 		return t.delete(stub, args)
 	}
 
 	return nil, errors.New("Received unknown function invocation")
 }
 
-func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Printf("Run called, passing through to Invoke (same function)")
+// Run - Our entry point for Invocations - [LEGACY] obc-peer 4/25/2016
+// ============================================================================================================================
+func (t *SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+	fmt.Printf("Run called, passing through to Invoke (same function)\n")
 
 	// Handle different functions
 	if function == "invoke" {
 		// Transaction makes payment of X units from EMP to CPO
-		fmt.Printf("Function is invoke")
+		fmt.Printf("Function is invoke\n")
 		return t.invoke(stub, args)
 	} else if function == "init" {
-		fmt.Printf("Function is init")
+		fmt.Printf("Function is init\n")
 		return t.Init(stub, function, args)
 	} else if function == "delete" {
 		// Deletes an entity from its state
-		fmt.Printf("Function is delete")
+		fmt.Printf("Function is delete\n")
 		return t.delete(stub, args)
 	}
 
@@ -315,37 +297,35 @@ func (t* SimpleChaincode) Run(stub shim.ChaincodeStubInterface, function string,
 
 // Query callback representing the query of a chaincode
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	fmt.Printf("Query called, determining function")
+	fmt.Printf("Query called, determining function\n")
 
 	// account object as stored in blockchain
-	var account_value_bytes []byte
+	var accountValueBytes []byte
 	var err error
 	var jsonResp string
 
-
 	if function != "query" {
-		fmt.Printf("Function is query")
+		fmt.Printf("Function is query\n")
 		return nil, errors.New("Invalid query function name. Expecting \"query\"")
 	}
 	//var account string // Entities
 	//var err error
 
-
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting name of the person to query")
 	}
 
-	account_key := args[0]
+	accountKey := args[0]
 
-	account_value_bytes, err = stub.GetState(account_key)
+	accountValueBytes, err = stub.GetState(accountKey)
 
 	if err != nil {
-		jsonResp = "{\"Error\":\"Failed to get state for " + account_key + "\"}"
+		jsonResp = "{\"Error\":\"Failed to get state for " + accountKey + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
 	// return account object with values
-	return account_value_bytes, nil
+	return accountValueBytes, nil
 }
 
 // ============================================================================================================================
@@ -354,6 +334,6 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 func main() {
 	err := shim.Start(new(SimpleChaincode))
 	if err != nil {
-		fmt.Printf("Error starting Simple chaincode: %s", err)
-}
+		fmt.Printf("Error starting Simple chaincode: %s\n", err)
+	}
 }
